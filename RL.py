@@ -21,8 +21,8 @@ policy3 = {
 
 }
 
+actions = [1,2]
 states = ['A', 'B', 'C']
-
 #r(s, a, s')
 reward_model = {
     'A': {'B':-10, 'C':-10},
@@ -44,16 +44,14 @@ state_val_table = {
     'C':0,
     'D':100
 }
-state_val_table_2= {
+state_val_table_2 = {
     'A':0,
     'B':0,
     'C':0,
     'D':100,
 }
 
-def probAction(state, action, policy):
-    # probability of 
-    return 3
+
 
 def probSA(state, action, nextS):
     prob = 0
@@ -75,7 +73,7 @@ def probSA(state, action, nextS):
                 prob = 0.9
             elif(action == 1 and nextS == 'A'):
                 prob = 0.1
-    else:
+    else: # state == C
             if(action == 1 and nextS == 'A'):
                 prob = 0.9
             elif(action == 1 and nextS == 'D'):
@@ -84,10 +82,15 @@ def probSA(state, action, nextS):
                 prob = 0.9
             elif(action == 2 and nextS == 'A'):
                 prob = 0.1
-    
     return prob
 
-# reward_model[s][ transition_model[s][count] ]
+
+
+def rewardSA(state, nextS):
+    reward = reward_model[state][nextS]
+    return reward
+
+
 def bellman_eq(policy, gamma):
     i = 0
     
@@ -96,36 +99,31 @@ def bellman_eq(policy, gamma):
         state_val_table['B'] = 0
         state_val_table['C'] = 0
         for s in states:
-            count = 0
-            for nextS in transition_model[s]:
-                state_val_table[s] += policy[s][1] * (probSA(s,1,nextS) * (-10 + gamma * state_val_table_2[nextS]))
-            count +=1
-            for nextS in transition_model[s]:
-                state_val_table[s] += policy[s][2] * (probSA(s,1,nextS) * (-10 + gamma * state_val_table_2[nextS]))
+            for a in actions:
+                for nextS in transition_model[s]:
+                    state_val_table[s] += policy[s][a] * (probSA(s,a,nextS) * (rewardSA(s, nextS) + gamma * state_val_table_2[nextS]))
+            
         for item in state_val_table:
             state_val_table_2[item] = state_val_table[item]
         i+=1
-    
 
-    
-def next_state(state, action):
-    probability = random.uniform(0,1)
-    if(probability < 0.1): # 10% chance of going to opposite state of one chosen
-        if (action == 1):
-            action = 2
-        else:
-            action = 1
+def solveStates(policy):
+    bellman_eq(policy, 1)
+    printStateVals()
 
-    return transition_model[state][action-1]
-    
+def printStateVals():
+    for i in state_val_table:
+        print("Vpi(" + i + "): " + str(round(state_val_table[i], 2)))
 
+print("==Policy 1== ")
+solveStates(policy1)
 
-bellman_eq(policy1, 1)
+print("\n==Policy 2== ")
+solveStates(policy2)
 
-print(state_val_table['A'])
-print(state_val_table['B'])
-print(state_val_table['C'])
-print(state_val_table['D'])
+print("\n==Policy 3== ")
+solveStates(policy3)
+
 
 
 
